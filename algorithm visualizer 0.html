@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Visualizer Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, button, input {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .visualization-area {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            border: 3px solid #eee;
+            border-radius: 10px;
+            background: #f9f9f9;
+            position: relative;
+            min-height: 400px;
+        }
+
+        #canvas {
+            border-radius: 8px;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .code-display {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .code-line {
+            padding: 2px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .code-line.highlight {
+            background-color: #4a5568;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .algorithm-description {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .complexity-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .complexity-card {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1024px) {
+            .visualization-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                justify-content: center;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Algorithm Visualizer Pro</h1>
+            <p>Interactive visualization of sorting, searching, and graph algorithms</p>
+        </div>
+
+        <div class="main-panel">
+            <div class="controls">
+                <div class="control-group">
+                    <label>Algorithm:</label>
+                    <select id="algorithmSelect">
+                        <optgroup label="Sorting Algorithms">
+                            <option value="bubbleSort">Bubble Sort</option>
+                            <option value="quickSort">Quick Sort</option>
+                            <option value="mergeSort">Merge Sort</option>
+                            <option value="heapSort">Heap Sort</option>
+                            <option value="insertionSort">Insertion Sort</option>
+                        </optgroup>
+                        <optgroup label="Search Algorithms">
+                            <option value="binarySearch">Binary Search</option>
+                            <option value="linearSearch">Linear Search</option>
+                        </optgroup>
+                        <optgroup label="Graph Algorithms">
+                            <option value="bfs">Breadth-First Search</option>
+                            <option value="dfs">Depth-First Search</option>
+                            <option value="dijkstra">Dijkstra's Algorithm</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Speed:</label>
+                    <input type="range" id="speedSlider" min="1" max="100" value="50">
+                    <span id="speedDisplay">50ms</span>
+                </div>
+
+                <div class="control-group">
+                    <label>Array Size:</label>
+                    <input type="range" id="sizeSlider" min="10" max="100" value="30">
+                    <span id="sizeDisplay">30</span>
+                </div>
+
+                <button id="generateBtn">Generate New Data</button>
+                <button id="playBtn">Play</button>
+                <button id="pauseBtn" disabled>Pause</button>
+                <button id="resetBtn">Reset</button>
+                <button id="stepBtn">Step</button>
+            </div>
+
+            <div class="visualization-area">
+                <div class="canvas-container">
+                    <canvas id="canvas" width="800" height="400"></canvas>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Processing...</p>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <div class="algorithm-description" id="algoDescription">
+                        Select an algorithm to see its description and complexity analysis.
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="comparisons">0</div>
+                            <div class="stat-label">Comparisons</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="swaps">0</div>
+                            <div class="stat-label">Swaps</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="arrayAccesses">0</div>
+                            <div class="stat-label">Array Accesses</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="steps">0</div>
+                            <div class="stat-label">Steps</div>
+                        </div>
+                    </div>
+
+                    <div class="complexity-info">
+                        <div class="complexity-card">
+                            <strong>Time Complexity</strong>
+                            <div id="timeComplexity">-</div>
+                        </div>
+                        <div class="complexity-card">
+                            <strong>Space Complexity</strong>
+                            <div id="spaceComplexity">-</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4CAF50;"></div>
+                            <span>Sorted</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FF5722;"></div>
+                            <span>Comparing</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #2196F3;"></div>
+                            <span>Current</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #FF9800;"></div>
+                            <span>Pivot</span>
+                        </div>
+                    </div>
+
+                    <div class="code-display" id="codeDisplay">
+                        Select an algorithm to view its implementation
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AlgorithmVisualizer {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.array = [];
+                this.size = 30;
+                this.speed = 50;
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.currentStep = 0;
+                this.steps = [];
+                this.stats = {
+                    comparisons: 0,
+                    swaps: 0,
+                    arrayAccesses: 0,
+                    steps: 0
+                };
+
+                this.algorithms = {
+                    bubbleSort: {
+                        name: 'Bubble Sort',
+                        description: 'Bubble Sort repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.',
+                        timeComplexity: 'O(n²)',
+                        spaceComplexity: 'O(1)',
+                        code: `function bubbleSort(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+        }
+    }
+    return arr;
+}`
+                    },
+                    quickSort: {
+                        name: 'Quick Sort',
+                        description: 'Quick Sort picks a pivot element and partitions the array around it, then recursively sorts the sub-arrays.',
+                        timeComplexity: 'O(n log n) avg, O(n²) worst',
+                        spaceComplexity: 'O(log n)',
+                        code: `function quickSort(arr, low = 0, high = arr.length - 1) {
+    if (low < high) {
+        let pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+function partition(arr, low, high) {
+    let pivot = arr[high];
+    let i = low - 1;
+    for (let j = low; j < high; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+    }
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+    return i + 1;
+}`
+                    },
+                    mergeSort: {
+                        name: 'Merge Sort',
+                        description: 'Merge Sort divides the array into halves, sorts them separately, then merges the sorted halves.',
+                        timeComplexity: 'O(n log n)',
+                        spaceComplexity: 'O(n)',
+                        code: `function mergeSort(arr) {
+    if (arr.length <= 1) return arr;
+    
+    const mid = Math.floor(arr.length / 2);
+    const left = mergeSort(arr.slice(0, mid));
+    const right = mergeSort(arr.slice(mid));
+    
+    return merge(left, right);
+}
+
+function merge(left, right) {
+    let result = [], i = 0, j = 0;
+    
+    while (i < left.length && j < right.length) {
+        if (left[i] <= right[j]) {
+            result.push(left[i++]);
+        } else {
+            result.push(right[j++]);
+        }
+    }
+    
+    return result.concat(left.slice(i), right.slice(j));
+}`
+                    },
+                    binarySearch: {
+                        name: 'Binary Search',
+                        description: 'Binary Search finds a target value in a sorted array by repeatedly dividing the search interval in half.',
+                        timeComplexity: 'O(log n)',
+                        spaceComplexity: 'O(1)',
+                        code: `function binarySearch(arr, target) {
+    let left = 0, right = arr.length - 1;
+    
+    while (left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        
+        if (arr[mid] === target) return mid;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    
+    return -1;
+}`
+                    },
+                    linearSearch: {
+                        name: 'Linear Search',
+                        description: 'Linear Search checks every element in the array sequentially until the target is found.',
+                        timeComplexity: 'O(n)',
+                        spaceComplexity: 'O(1)',
+                        code: `function linearSearch(arr, target) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === target) {
+            return i;
+        }
+    }
+    return -1;
+}`
+                    },
+                    bfs: {
+                        name: 'Breadth-First Search',
+                        description: 'BFS explores vertices level by level, visiting all neighbors before moving to the next level.',
+                        timeComplexity: 'O(V + E)',
+                        spaceComplexity: 'O(V)',
+                        code: `function bfs(graph, start) {
+    const visited = new Set();
+    const queue = [start];
+    const result = [];
+    
+    while (queue.length > 0) {
+        const vertex = queue.shift();
+        
+        if (!visited.has(vertex)) {
+            visited.add(vertex);
+            result.push(vertex);
+            
+            for (const neighbor of graph[vertex]) {
+                if (!visited.has(neighbor)) {
+                    queue.push(neighbor);
+                }
+            }
+        }
+    }
+    
+    return result;
+}`
+                    },
+                    dfs: {
+                        name: 'Depth-First Search',
+                        description: 'DFS explores as far as possible along each branch before backtracking.',
+                        timeComplexity: 'O(V + E)',
+                        spaceComplexity: 'O(V)',
+                        code: `function dfs(graph, start, visited = new Set()) {
+    visited.add(start);
+    console.log(start);
+    
+    for (const neighbor of graph[start]) {
+        if (!visited.has(neighbor)) {
+            dfs(graph, neighbor, visited);
+        }
+    }
+}`
+                    }
+                };
+
+                this.initializeEventListeners();
+                this.generateArray();
+                this.updateAlgorithmInfo();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('algorithmSelect').addEventListener('change', () => {
+                    this.updateAlgorithmInfo();
+                    this.reset();
+                });
+
+                document.getElementById('speedSlider').addEventListener('input', (e) => {
+                    this.speed = parseInt(e.target.value);
+                    document.getElementById('speedDisplay').textContent = `${101 - this.speed}ms`;
+                });
+
+                document.getElementById('sizeSlider').addEventListener('input', (e) => {
+                    this.size = parseInt(e.target.value);
+                    document.getElementById('sizeDisplay').textContent = this.size.toString();
+                    this.generateArray();
+                });
+
+                document.getElementById('generateBtn').addEventListener('click', () => this.generateArray());
+                document.getElementById('playBtn').addEventListener('click', () => this.play());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
+                document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+                document.getElementById('stepBtn').addEventListener('click', () => this.step());
+            }
+
+            generateArray() {
+                this.array = Array.from({ length: this.size }, () => 
+                    Math.floor(Math.random() * (this.canvas.height - 50)) + 10
+                );
+                this.reset();
+                this.draw();
+            }
+
+            updateAlgorithmInfo() {
+                const selectedAlgo = document.getElementById('algorithmSelect').value;
+                const algo = this.algorithms[selectedAlgo];
+                
+                if (algo) {
+                    document.getElementById('algoDescription').innerHTML = `
+                        <h3>${algo.name}</h3>
+                        <p>${algo.description}</p>
+                    `;
+                    document.getElementById('timeComplexity').textContent = algo.timeComplexity;
+                    document.getElementById('spaceComplexity').textContent = algo.spaceComplexity;
+                    document.getElementById('codeDisplay').innerHTML = this.highlightCode(algo.code);
+                }
+            }
+
+            highlightCode(code) {
+                return code
+                    .split('\n')
+                    .map((line, index) => `<div class="code-line" data-line="${index}">${line}</div>`)
+                    .join('');
+            }
+
+            async play() {
+                if (this.isPaused) {
+                    this.isPaused = false;
+                } else {
+                    const selectedAlgo = document.getElementById('algorithmSelect').value;
+                    await this.generateSteps(selectedAlgo);
+                }
+                
+                this.isPlaying = true;
+                this.updateButtons();
+                await this.animate();
+            }
+
+            pause() {
+                this.isPlaying = false;
+                this.isPaused = true;
+                this.updateButtons();
+            }
+
+            reset() {
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.currentStep = 0;
+                this.steps = [];
+                this.stats = { comparisons: 0, swaps: 0, arrayAccesses: 0, steps: 0 };
+                this.updateStats();
+                this.updateButtons();
+                this.generateArray();
+            }
+
+            step() {
+                if (this.steps.length === 0) {
+                    const selectedAlgo = document.getElementById('algorithmSelect').value;
+                    this.generateSteps(selectedAlgo);
+                }
+                
+                if (this.currentStep < this.steps.length) {
+                    this.executeStep(this.steps[this.currentStep]);
+                    this.currentStep++;
+                    this.updateProgress();
+                }
+            }
+
+            async generateSteps(algorithm) {
+                this.steps = [];
+                this.stats = { comparisons: 0, swaps: 0, arrayAccesses: 0, steps: 0 };
+                
+                switch (algorithm) {
+                    case 'bubbleSort':
+                        this.generateBubbleSortSteps();
+                        break;
+                    case 'quickSort':
+                        this.generateQuickSortSteps();
+                        break;
+                    case 'mergeSort':
+                        this.generateMergeSortSteps();
+                        break;
+                    case 'binarySearch':
+                        this.generateBinarySearchSteps();
+                        break;
+                    case 'linearSearch':
+                        this.generateLinearSearchSteps();
+                        break;
+                    case 'bfs':
+                        this.generateBFSSteps();
+                        break;
+                    case 'dfs':
+                        this.generateDFSSteps();
+                        break;
+                }
+            }
+
+            generateBubbleSortSteps() {
+                const arr = [...this.array];
+                
+                for (let i = 0; i < arr.length; i++) {
+                    for (let j = 0; j < arr.length - i - 1; j++) {
+                        this.steps.push({
+                            type: 'compare',
+                            indices: [j, j + 1],
+                            array: [...arr]
+                        });
+                        
+                        if (arr[j] > arr[j + 1]) {
+                            [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                            this.steps.push({
+                                type: 'swap',
+                                indices: [j, j + 1],
+                                array: [...arr]
+                            });
+                        }
+                    }
+                    
+                    this.steps.push({
+                        type: 'sorted',
+                        indices: [arr.length - i - 1],
+                        array: [...arr]
+                    });
+                }
+            }
+
+            generateQuickSortSteps() {
+                const arr = [...this.array];
+                
+                const quickSort = (arr, low, high) => {
+                    if (low < high) {
+                        const pi = partition(arr, low, high);
+                        quickSort(arr, low, pi - 1);
+                        quickSort(arr, pi + 1, high);
+                    }
+                };
+                
+                const partition = (arr, low, high) => {
+                    const pivot = arr[high];
+                    let i = low - 1;
+                    
+                    this.steps.push({
+                        type: 'pivot',
+                        indices: [high],
+                        array: [...arr]
+                    });
+                    
+                    for (let j = low; j < high; j++) {
+                        this.steps.push({
+                            type: 'compare',
+                            indices: [j, high],
+                            array: [...arr]
+                        });
+                        
+                        if (arr[j] < pivot) {
+                            i++;
+                            if (i !== j) {
+                                [arr[i], arr[j]] = [arr[j], arr[i]];
+                                this.steps.push({
+                                    type: 'swap',
+                                    indices: [i, j],
+                                    array: [...arr]
+                                });
+                            }
+                        }
+                    }
+                    
+                    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+                    this.steps.push({
+                        type: 'swap',
+                        indices: [i + 1, high],
+                        array: [...arr]
+                    });
+                    
+                    return i + 1;
+                };
+                
+                quickSort(arr, 0, arr.length - 1);
+            }
+
+            generateMergeSortSteps() {
+                const arr = [...this.array];
+                
+                const mergeSort = (arr, left = 0, right = arr.length - 1) => {
+                    if (left < right) {
+                        const mid = Math.floor((left + right) / 2);
+                        
+                        this.steps.push({
+                            type: 'divide',
+                            indices: [left, mid, right],
+                            array: [...arr]
+                        });
+                        
+                        mergeSort(arr, left, mid);
+                        mergeSort(arr, mid + 1, right);
+                        merge(arr, left, mid, right);
+                    }
+                };
+                
+                const merge = (arr, left, mid, right) => {
+                    const leftArr = arr.slice(left, mid + 1);
+                    const rightArr = arr.slice(mid + 1, right + 1);
+                    
+                    let i = 0, j = 0, k = left;
+                    
+                    while (i < leftArr.length && j < rightArr.length) {
+                        this.steps.push({
+                            type: 'compare',
+                            indices: [left + i, mid + 1 + j],
+                            array: [...arr]
+                        });
+                        
+                        if (leftArr[i] <= rightArr[j]) {
+                            arr[k] = leftArr[i];
+                            i++;
+                        } else {
+                            arr[k] = rightArr[j];
+                            j++;
+                        }
+                        
+                        this.steps.push({
+                            type: 'merge',
+                            indices: [k],
+                            array: [...arr]
+                        });
+                        
+                        k++;
+                    }
+                    
+                    while (i < leftArr.length) {
+                        arr[k] = leftArr[i];
+                        this.steps.push({
+                            type: 'merge',
+                            indices: [k],
+                            array: [...arr]
+                        });
+                        i++;
+                        k++;
+                    }
+                    
+                    while (j < rightArr.length) {
+                        arr[k] = rightArr[j];
+                        this.steps.push({
+                            type: 'merge',
+                            indices: [k],
+                            array: [...arr]
+                        });
+                        j++;
+                        k++;
+                    }
+                };
+                
+                mergeSort(arr);
+            }
+
+            generateBinarySearchSteps() {
+                // First sort the array
+                const arr = [...this.array].sort((a, b) => a - b);
+                this.array = [...arr];
+                
+                // Pick a random target
+                const target = arr[Math.floor(Math.random() * arr.length)];
+                
+                let left = 0, right = arr.length - 1;
+                
+                while (left <= right) {
+                    const mid = Math.floor((left + right) / 2);
+                    
+                    this.steps.push({
+                        type: 'search',
+                        indices: [left, mid, right],
+                        array: [...arr],
+                        target: target,
+                        found: false
+                    });
+                    
+                    if (arr[mid] === target) {
+                        this.steps.push({
+                            type: 'found',
+                            indices: [mid],
+                            array: [...arr],
+                            target: target,
+                            found: true
+                        });
+                        break;
+                    }
+                    
+                    if (arr[mid] < target) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+            }
+
+            generateLinearSearchSteps() {
+                const arr = [...this.array];
+                const target = arr[Math.floor(Math.random() * arr.length)];
+                
+                for (let i = 0; i < arr.length; i++) {
+                    this.steps.push({
+                        type: 'search',
+                        indices: [i],
+                        array: [...arr],
+                        target: target,
+                        found: arr[i] === target
+                    });
+                    
+                    if (arr[i] === target) {
+                        this.steps.push({
+                            type: 'found',
+                            indices: [i],
+                            array: [...arr],
+                            target: target,
+                            found: true
+                        });
+                        break;
+                    }
+                }
+            }
+
+            generateBFSSteps() {
+                // Create a simple graph visualization
+                const nodes = Math.min(15, this.size);
+                const graph = this.generateRandomGraph(nodes);
+                
+                const visited = new Set();
+                const queue = [0];
+                
+                while (queue.length > 0) {
+                    const vertex = queue.shift();
+                    
+                    if (!visited.has(vertex)) {
+                        visited.add(vertex);
+                        
+                        this.steps.push({
+                            type: 'visit',
+                            indices: [vertex],
+                            graph: graph,
+                            visited: new Set(visited),
+                            queue: [...queue]
+                        });
+                        
+                        for (const neighbor of graph[vertex] || []) {
+                            if (!visited.has(neighbor) && !queue.includes(neighbor)) {
+                                queue.push(neighbor);
+                                this.steps.push({
+                                    type: 'enqueue',
+                                    indices: [neighbor],
+                                    graph: graph,
+                                    visited: new Set(visited),
+                                    queue: [...queue]
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            generateDFSSteps() {
+                const nodes = Math.min(15, this.size);
+                const graph = this.generateRandomGraph(nodes);
+                
+                const visited = new Set();
+                const stack = [0];
+                
+                const dfs = (vertex) => {
+                    if (visited.has(vertex)) return;
+                    
+                    visited.add(vertex);
+                    this.steps.push({
+                        type: 'visit',
+                        indices: [vertex],
+                        graph: graph,
+                        visited: new Set(visited),
+                        stack: [...stack]
+                    });
+                    
+                    for (const neighbor of graph[vertex] || []) {
+                        if (!visited.has(neighbor)) {
+                            stack.push(neighbor);
+                            this.steps.push({
+                                type: 'push',
+                                indices: [neighbor],
+                                graph: graph,
+                                visited: new Set(visited),
+                                stack: [...stack]
+                            });
+                            dfs(neighbor);
+                        }
+                    }
+                };
+                
+                dfs(0);
+            }
+
+            generateRandomGraph(nodes) {
+                const graph = {};
+                for (let i = 0; i < nodes; i++) {
+                    graph[i] = [];
+                }
+                
+                // Create random connections
+                const connections = Math.floor(nodes * 1.5);
+                for (let i = 0; i < connections; i++) {
+                    const from = Math.floor(Math.random() * nodes);
+                    const to = Math.floor(Math.random() * nodes);
+                    if (from !== to && !graph[from].includes(to)) {
+                        graph[from].push(to);
+                        graph[to].push(from); // Undirected graph
+                    }
+                }
+                
+                return graph;
+            }
+
+            async animate() {
+                while (this.isPlaying && this.currentStep < this.steps.length) {
+                    this.executeStep(this.steps[this.currentStep]);
+                    this.currentStep++;
+                    this.updateProgress();
+                    
+                    await new Promise(resolve => 
+                        setTimeout(resolve, 101 - this.speed)
+                    );
+                }
+                
+                if (this.currentStep >= this.steps.length) {
+                    this.isPlaying = false;
+                    this.updateButtons();
+                }
+            }
+
+            executeStep(step) {
+                this.array = [...step.array];
+                this.stats.steps++;
+                
+                switch (step.type) {
+                    case 'compare':
+                        this.stats.comparisons++;
+                        this.stats.arrayAccesses += 2;
+                        break;
+                    case 'swap':
+                        this.stats.swaps++;
+                        this.stats.arrayAccesses += 2;
+                        break;
+                    case 'search':
+                    case 'visit':
+                    case 'enqueue':
+                    case 'push':
+                        this.stats.arrayAccesses++;
+                        break;
+                }
+                
+                this.updateStats();
+                this.draw(step);
+            }
+
+            draw(step = null) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const selectedAlgo = document.getElementById('algorithmSelect').value;
+                
+                if (['bfs', 'dfs'].includes(selectedAlgo) && step && step.graph) {
+                    this.drawGraph(step);
+                } else {
+                    this.drawArray(step);
+                }
+            }
+
+            drawArray(step = null) {
+                const barWidth = this.canvas.width / this.array.length;
+                const maxHeight = this.canvas.height - 50;
+                const maxValue = Math.max(...this.array);
+                
+                for (let i = 0; i < this.array.length; i++) {
+                    const height = (this.array[i] / maxValue) * maxHeight;
+                    const x = i * barWidth;
+                    const y = this.canvas.height - height;
+                    
+                    // Determine color based on step type
+                    let color = '#3498db'; // Default blue
+                    
+                    if (step) {
+                        if (step.indices.includes(i)) {
+                            switch (step.type) {
+                                case 'compare':
+                                case 'search':
+                                    color = '#e74c3c'; // Red for comparing
+                                    break;
+                                case 'swap':
+                                    color = '#f39c12'; // Orange for swapping
+                                    break;
+                                case 'pivot':
+                                    color = '#9b59b6'; // Purple for pivot
+                                    break;
+                                case 'sorted':
+                                    color = '#27ae60'; // Green for sorted
+                                    break;
+                                case 'found':
+                                    color = '#27ae60'; // Green for found
+                                    break;
+                                case 'merge':
+                                    color = '#f1c40f'; // Yellow for merge
+                                    break;
+                            }
+                        }
+                    }
+                    
+                    // Draw bar
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(x, y, barWidth - 2, height);
+                    
+                    // Draw value on top of bar
+                    this.ctx.fillStyle = '#2c3e50';
+                    this.ctx.font = '10px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(
+                        this.array[i].toString(),
+                        x + barWidth / 2,
+                        y - 5
+                    );
+                }
+                
+                // Draw target for search algorithms
+                if (step && step.target !== undefined) {
+                    this.ctx.fillStyle = '#2c3e50';
+                    this.ctx.font = '16px Arial';
+                    this.ctx.textAlign = 'left';
+                    this.ctx.fillText(
+                        `Target: ${step.target}`,
+                        10,
+                        30
+                    );
+                }
+            }
+
+            drawGraph(step) {
+                const graph = step.graph;
+                const nodes = Object.keys(graph).length;
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = Math.min(centerX, centerY) - 50;
+                
+                const positions = {};
+                for (let i = 0; i < nodes; i++) {
+                    const angle = (2 * Math.PI * i) / nodes;
+                    positions[i] = {
+                        x: centerX + radius * Math.cos(angle),
+                        y: centerY + radius * Math.sin(angle)
+                    };
+                }
+                
+                // Draw edges
+                this.ctx.strokeStyle = '#bdc3c7';
+                this.ctx.lineWidth = 2;
+                for (const node in graph) {
+                    for (const neighbor of graph[node]) {
+                        if (parseInt(node) < parseInt(neighbor)) { // Draw each edge only once
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(positions[node].x, positions[node].y);
+                            this.ctx.lineTo(positions[neighbor].x, positions[neighbor].y);
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+                
+                // Draw nodes
+                for (let i = 0; i < nodes; i++) {
+                    let color = '#3498db';
+                    
+                    if (step.visited.has(i)) {
+                        color = '#27ae60'; // Green for visited
+                    } else if (step.indices.includes(i)) {
+                        color = '#e74c3c'; // Red for current
+                    } else if (step.queue && step.queue.includes(i)) {
+                        color = '#f39c12'; // Orange for in queue
+                    }
+                    
+                    this.ctx.fillStyle = color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(positions[i].x, positions[i].y, 20, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    
+                    // Draw node label
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = 'bold 14px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(
+                        i.toString(),
+                        positions[i].x,
+                        positions[i].y + 5
+                    );
+                }
+                
+                // Draw queue/stack info
+                if (step.queue) {
+                    this.ctx.fillStyle = '#2c3e50';
+                    this.ctx.font = '14px Arial';
+                    this.ctx.textAlign = 'left';
+                    this.ctx.fillText(
+                        `Queue: [${step.queue.join(', ')}]`,
+                        10,
+                        30
+                    );
+                }
+                
+                if (step.stack) {
+                    this.ctx.fillStyle = '#2c3e50';
+                    this.ctx.font = '14px Arial';
+                    this.ctx.textAlign = 'left';
+                    this.ctx.fillText(
+                        `Stack: [${step.stack.join(', ')}]`,
+                        10,
+                        50
+                    );
+                }
+            }
+
+            updateStats() {
+                document.getElementById('comparisons').textContent = this.stats.comparisons;
+                document.getElementById('swaps').textContent = this.stats.swaps;
+                document.getElementById('arrayAccesses').textContent = this.stats.arrayAccesses;
+                document.getElementById('steps').textContent = this.stats.steps;
+            }
+
+            updateProgress() {
+                if (this.steps.length > 0) {
+                    const progress = (this.currentStep / this.steps.length) * 100;
+                    document.getElementById('progressFill').style.width = `${progress}%`;
+                }
+            }
+
+            updateButtons() {
+                const playBtn = document.getElementById('playBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                const stepBtn = document.getElementById('stepBtn');
+                const resetBtn = document.getElementById('resetBtn');
+                
+                playBtn.disabled = this.isPlaying;
+                pauseBtn.disabled = !this.isPlaying;
+                stepBtn.disabled = this.isPlaying;
+                resetBtn.disabled = this.isPlaying;
+                
+                if (this.isPlaying) {
+                    playBtn.textContent = 'Playing...';
+                } else if (this.isPaused) {
+                    playBtn.textContent = 'Resume';
+                } else {
+                    playBtn.textContent = 'Play';
+                }
+            }
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const visualizer = new AlgorithmVisualizer();
+        });
+    </script>
+</body>
+</html>
