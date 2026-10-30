@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Algorithm Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            animation: gradientShift 6s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a0a0a0;
+        }
+
+        select, button, input {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        select:hover, button:hover, input:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .primary-btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .danger-btn {
+            background: linear-gradient(45deg, #ff4757, #ff6b6b);
+        }
+
+        .success-btn {
+            background: linear-gradient(45deg, #2ed573, #7bed9f);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            min-height: 600px;
+        }
+
+        .visualization-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visualization-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: fit-content;
+        }
+
+        .code-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas {
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .array-element {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin: 2px;
+            background: #4ecdc4;
+            color: #000;
+            text-align: center;
+            line-height: 40px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .array-element.comparing {
+            background: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .array-element.sorted {
+            background: #2ed573;
+        }
+
+        .array-element.current {
+            background: #ffa502;
+            transform: scale(1.15);
+        }
+
+        .complexity-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .complexity-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .speed-slider {
+            width: 150px;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.running {
+            background: rgba(255, 165, 2, 0.2);
+            border: 1px solid #ffa502;
+            color: #ffa502;
+        }
+
+        .status.completed {
+            background: rgba(46, 213, 115, 0.2);
+            border: 1px solid #2ed573;
+            color: #2ed573;
+        }
+
+        .status.ready {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid #4ecdc4;
+            color: #4ecdc4;
+        }
+
+        .graph-node {
+            fill: #4ecdc4;
+            stroke: #ffffff;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .graph-node.visited {
+            fill: #2ed573;
+        }
+
+        .graph-node.current {
+            fill: #ffa502;
+        }
+
+        .graph-node.start {
+            fill: #ff6b6b;
+        }
+
+        .graph-node.end {
+            fill: #9b59b6;
+        }
+
+        .graph-edge {
+            stroke: #ffffff;
+            stroke-width: 2;
+            opacity: 0.6;
+        }
+
+        .graph-edge.active {
+            stroke: #ffa502;
+            stroke-width: 3;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .highlight-line {
+            background: rgba(255, 165, 2, 0.3);
+            border-radius: 3px;
+            padding: 2px 4px;
+            margin: 1px 0;
+        }
+
+        .search-result {
+            background: #2ed573;
+            transform: scale(1.2);
+            box-shadow: 0 0 20px rgba(46, 213, 115, 0.6);
+        }
+
+        .path-node {
+            fill: #e74c3c;
+            stroke: #ffffff;
+            stroke-width: 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Advanced Algorithm Visualizer</h1>
+            <p>Interactive visualization of sorting, searching, and graph algorithms</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Algorithm Type</label>
+                <select id="algorithmType">
+                    <option value="sorting">Sorting Algorithms</option>
+                    <option value="searching">Searching Algorithms</option>
+                    <option value="graph">Graph Traversal</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Algorithm</label>
+                <select id="algorithm">
+                    <option value="bubbleSort">Bubble Sort</option>
+                    <option value="quickSort">Quick Sort</option>
+                    <option value="mergeSort">Merge Sort</option>
+                    <option value="heapSort">Heap Sort</option>
+                    <option value="insertionSort">Insertion Sort</option>
+                    <option value="selectionSort">Selection Sort</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Array Size</label>
+                <input type="range" id="arraySize" min="10" max="100" value="30" class="speed-slider">
+                <span id="arraySizeValue">30</span>
+            </div>
+
+            <div class="control-group">
+                <label>Speed (ms)</label>
+                <input type="range" id="speed" min="10" max="1000" value="100" class="speed-slider">
+                <span id="speedValue">100</span>
+            </div>
+
+            <div class="control-group">
+                <button id="generateArray" class="success-btn">Generate Array</button>
+                <button id="startVisualization" class="primary-btn">Start</button>
+                <button id="pauseVisualization" class="danger-btn">Pause</button>
+                <button id="resetVisualization">Reset</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="visualization-panel">
+                <div id="status" class="status ready">Ready to visualize</div>
+                <div class="canvas-container">
+                    <canvas id="visualizationCanvas" width="800" height="400"></canvas>
+                    <div id="arrayContainer"></div>
+                    <svg id="graphSvg" width="800" height="400" style="display: none;"></svg>
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <div class="info-panel">
+                    <h3>Algorithm Information</h3>
+                    <div id="algorithmInfo">
+                        <h4>Bubble Sort</h4>
+                        <p>Bubble Sort repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.</p>
+                        <div class="complexity-info">
+                            <div class="complexity-item">
+                                <strong>Time: O(n²)</strong>
+                            </div>
+                            <div class="complexity-item">
+                                <strong>Space: O(1)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-panel">
+                    <h3>Code Implementation</h3>
+                    <pre id="codeDisplay">
+<span class="highlight-line">function bubbleSort(arr) {</span>
+    let n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // Swap elements
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+        }
+    }
+    return arr;
+}
+                    </pre>
+                </div>
+
+                <div class="stats-panel">
+                    <h3>Statistics</h3>
+                    <div id="stats">
+                        <p><strong>Comparisons:</strong> <span id="comparisons">0</span></p>
+                        <p><strong>Swaps:</strong> <span id="swaps">0</span></p>
+                        <p><strong>Time Elapsed:</strong> <span id="timeElapsed">0</span>ms</p>
+                        <p><strong>Array Accesses:</strong> <span id="arrayAccesses">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AlgorithmVisualizer {
+            constructor() {
+                this.canvas = document.getElementById('visualizationCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.arrayContainer = document.getElementById('arrayContainer');
+                this.graphSvg = document.getElementById('graphSvg');
+                
+                this.array = [];
+                this.originalArray = [];
+                this.isRunning = false;
+                this.isPaused = false;
+                this.animationSpeed = 100;
+                this.stats = {
+                    comparisons: 0,
+                    swaps: 0,
+                    arrayAccesses: 0,
+                    startTime: 0
+                };
+                
+                this.graph = {
+                    nodes: [],
+                    edges: [],
+                    adjacencyList: new Map()
+                };
+                
+                this.currentAlgorithm = 'bubbleSort';
+                this.currentType = 'sorting';
+                
+                this.initializeEventListeners();
+                this.generateRandomArray();
+                this.updateAlgorithmInfo();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('algorithmType').addEventListener('change', (e) => {
+                    this.currentType = e.target.value;
+                    this.updateAlgorithmOptions();
+                    this.resetVisualization();
+                });
+
+                document.getElementById('algorithm').addEventListener('change', (e) => {
+                    this.currentAlgorithm = e.target.value;
+                    this.updateAlgorithmInfo();
+                    this.resetVisualization();
+                });
+
+                document.getElementById('arraySize').addEventListener('input', (e) => {
+                    document.getElementById('arraySizeValue').textContent = e.target.value;
+                });
+
+                document.getElementById('speed').addEventListener('input', (e) => {
+                    this.animationSpeed = parseInt(e.target.value);
+                    document.getElementById('speedValue').textContent = e.target.value;
+                });
+
+                document.getElementById('generateArray').addEventListener('click', () => {
+                    if (this.currentType === 'graph') {
+                        this.generateRandomGraph();
+                    } else {
+                        this.generateRandomArray();
+                    }
+                });
+
+                document.getElementById('startVisualization').addEventListener('click', () => {
+                    this.startVisualization();
+                });
+
+                document.getElementById('pauseVisualization').addEventListener('click', () => {
+                    this.pauseVisualization();
+                });
+
+                document.getElementById('resetVisualization').addEventListener('click', () => {
+                    this.resetVisualization();
+                });
+            }
+
+            updateAlgorithmOptions() {
+                const algorithmSelect = document.getElementById('algorithm');
+                algorithmSelect.innerHTML = '';
+
+                const algorithms = {
+                    sorting: [
+                        { value: 'bubbleSort', text: 'Bubble Sort' },
+                        { value: 'quickSort', text: 'Quick Sort' },
+                        { value: 'mergeSort', text: 'Merge Sort' },
+                        { value: 'heapSort', text: 'Heap Sort' },
+                        { value: 'insertionSort', text: 'Insertion Sort' },
+                        { value: 'selectionSort', text: 'Selection Sort' }
+                    ],
+                    searching: [
+                        { value: 'linearSearch', text: 'Linear Search' },
+                        { value: 'binarySearch', text: 'Binary Search' },
+                        { value: 'jumpSearch', text: 'Jump Search' }
+                    ],
+                    graph: [
+                        { value: 'dfs', text: 'Depth-First Search' },
+                        { value: 'bfs', text: 'Breadth-First Search' },
+                        { value: 'dijkstra', text: 'Dijkstra\'s Algorithm' }
+                    ]
+                };
+
+                algorithms[this.currentType].forEach(alg => {
+                    const option = document.createElement('option');
+                    option.value = alg.value;
+                    option.textContent = alg.text;
+                    algorithmSelect.appendChild(option);
+                });
+
+                this.currentAlgorithm = algorithms[this.currentType][0].value;
+                this.updateAlgorithmInfo();
+
+                // Show/hide appropriate containers
+                if (this.currentType === 'graph') {
+                    this.canvas.style.display = 'none';
+                    this.arrayContainer.style.display = 'none';
+                    this.graphSvg.style.display = 'block';
+                    this.generateRandomGraph();
+                } else {
+                    this.canvas.style.display = 'block';
+                    this.arrayContainer.style.display = 'none';
+                    this.graphSvg.style.display = 'none';
+                    this.generateRandomArray();
+                }
+            }
+
+            generateRandomArray() {
+                const size = parseInt(document.getElementById('arraySize').value);
+                this.array = Array.from({length: size}, () => Math.floor(Math.random() * 300) + 10);
+                this.originalArray = [...this.array];
+                this.renderArray();
+                this.resetStats();
+            }
+
+            generateRandomGraph() {
+                const nodeCount = 12;
+                this.graph.nodes = [];
+                this.graph.edges = [];
+                this.graph.adjacencyList.clear();
+
+                // Generate nodes in a circle
+                const centerX = 400;
+                const centerY = 200;
+                const radius = 150;
+
+                for (let i = 0; i < nodeCount; i++) {
+                    const angle = (i * 2 * Math.PI) / nodeCount;
+                    const x = centerX + radius * Math.cos(angle);
+                    const y = centerY + radius * Math.sin(angle);
+                    
+                    this.graph.nodes.push({
+                        id: i,
+                        x: x,
+                        y: y,
+                        visited: false,
+                        isStart: i === 0,
+                        isEnd: i === nodeCount - 1
+                    });
+                    
+                    this.graph.adjacencyList.set(i, []);
+                }
+
+                // Generate random edges
+                for (let i = 0; i < nodeCount; i++) {
+                    const numEdges = Math.floor(Math.random() * 3) + 1;
+                    for (let j = 0; j < numEdges; j++) {
+                        const target = Math.floor(Math.random() * nodeCount);
+                        if (target !== i && !this.graph.adjacencyList.get(i).includes(target)) {
+                            this.graph.adjacencyList.get(i).push(target);
+                            this.graph.adjacencyList.get(target).push(i);
+                            this.graph.edges.push({ from: i, to: target, active: false });
+                        }
+                    }
+                }
+
+                this.renderGraph();
+            }
+
+            renderArray() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const barWidth = Math.min(this.canvas.width / this.array.length - 2, 50);
+                const maxHeight = this.canvas.height - 50;
+                const maxValue = Math.max(...this.array);
+
+                this.array.forEach((value, index) => {
+                    const barHeight = (value / maxValue) * maxHeight;
+                    const x = index * (barWidth + 2) + (this.canvas.width - (this.array.length * (barWidth + 2))) / 2;
+                    const y = this.canvas.height - barHeight - 25;
+
+                    // Bar
+                    this.ctx.fillStyle = '#4ecdc4';
+                    this.ctx.fillRect(x, y, barWidth, barHeight);
+
+                    // Value text
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(value, x + barWidth/2, y - 5);
+                });
+            }
+
+            renderGraph() {
+                this.graphSvg.innerHTML = '';
+
+                // Render edges first
+                this.graph.edges.forEach(edge => {
+                    const fromNode = this.graph.nodes[edge.from];
+                    const toNode = this.graph.nodes[edge.to];
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', fromNode.x);
+                    line.setAttribute('y1', fromNode.y);
+                    line.setAttribute('x2', toNode.x);
+                    line.setAttribute('y2', toNode.y);
+                    line.setAttribute('class', edge.active ? 'graph-edge active' : 'graph-edge');
+                    
+                    this.graphSvg.appendChild(line);
+                });
+
+                // Render nodes
+                this.graph.nodes.forEach(node => {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', node.x);
+                    circle.setAttribute('cy', node.y);
+                    circle.setAttribute('r', 20);
+                    
+                    let className = 'graph-node';
+                    if (node.isStart) className += ' start';
+                    if (node.isEnd) className += ' end';
+                    if (node.visited) className += ' visited';
+                    if (node.current) className += ' current';
+                    
+                    circle.setAttribute('class', className);
+                    this.graphSvg.appendChild(circle);
+
+                    // Node label
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', node.x);
+                    text.setAttribute('y', node.y + 5);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('fill', '#ffffff');
+                    text.setAttribute('font-size', '14');
+                    text.setAttribute('font-weight', 'bold');
+                    text.textContent = node.id;
+                    
+                    this.graphSvg.appendChild(text);
+                });
+            }
+
+            updateAlgorithmInfo() {
+                const info = {
+                    bubbleSort: {
+                        title: 'Bubble Sort',
+                        description: 'Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.',
+                        timeComplexity: 'O(n²)',
+                        spaceComplexity: 'O(1)',
+                        code: `function bubbleSort(arr) {
+    let n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+        }
+    }
+    return arr;
+}`
+                    },
+                    quickSort: {
+                        title: 'Quick Sort',
+                        description: 'Divides the array around a pivot element and recursively sorts the sub-arrays.',
+                        timeComplexity: 'O(n log n)',
+                        spaceComplexity: 'O(log n)',
+                        code: `function quickSort(arr, low = 0, high = arr.length - 1) {
+    if (low < high) {
+        let pivot = partition(arr, low, high);
+        quickSort(arr, low, pivot - 1);
+        quickSort(arr, pivot + 1, high);
+    }
+}`
+                    },
+                    mergeSort: {
+                        title: 'Merge Sort',
+                        description: 'Divides the array into halves, sorts them recursively, then merges the sorted halves.',
+                        timeComplexity: 'O(n log n)',
+                        spaceComplexity: 'O(n)',
+                        code: `function mergeSort(arr) {
+    if (arr.length <= 1) return arr;
+    
+    const mid = Math.floor(arr.length / 2);
+    const left = mergeSort(arr.slice(0, mid));
+    const right = mergeSort(arr.slice(mid));
+    
+    return merge(left, right);
+}`
+                    },
+                    linearSearch: {
+                        title: 'Linear Search',
+                        description: 'Sequentially checks each element until the target is found or the list ends.',
+                        timeComplexity: 'O(n)',
+                        spaceComplexity: 'O(1)',
+                        code: `function linearSearch(arr, target) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === target) {
+            return i;
+        }
+    }
+    return -1;
+}`
+                    },
+                    binarySearch: {
+                        title: 'Binary Search',
+                        description: 'Efficiently searches a sorted array by repeatedly dividing the search interval in half.',
+                        timeComplexity: 'O(log n)',
+                        spaceComplexity: 'O(1)',
+                        code: `function binarySearch(arr, target) {
+    let left = 0, right = arr.length - 1;
+    
+    while (left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        if (arr[mid] === target) return mid;
+        if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    return -1;
+}`
+                    },
+                    dfs: {
+                        title: 'Depth-First Search',
+                        description: 'Explores as far as possible along each branch before backtracking.',
+                        timeComplexity: 'O(V + E)',
+                        spaceComplexity: 'O(V)',
+                        code: `function dfs(graph, start, visited = new Set()) {
+    visited.add(start);
+    console.log(start);
+    
+    for (let neighbor of graph[start]) {
+        if (!visited.has(neighbor)) {
+            dfs(graph, neighbor, visited);
+        }
+    }
+}`
+                    },
+                    bfs: {
+                        title: 'Breadth-First Search',
+                        description: 'Explores all neighbors at the current depth before moving to the next depth level.',
+                        timeComplexity: 'O(V + E)',
+                        spaceComplexity: 'O(V)',
+                        code: `function bfs(graph, start) {
+    let visited = new Set();
+    let queue = [start];
+    
+    while (queue.length > 0) {
+        let node = queue.shift();
+        if (!visited.has(node)) {
+            visited.add(node);
+            console.log(node);
+            queue.push(...graph[node]);
+        }
+    }
+}`
+                    }
+                };
+
+                const algorithmInfo = info[this.currentAlgorithm];
+                if (algorithmInfo) {
+                    document.getElementById('algorithmInfo').innerHTML = `
+                        <h4>${algorithmInfo.title}</h4>
+                        <p>${algorithmInfo.description}</p>
+                        <div class="complexity-info">
+                            <div class="complexity-item">
+                                <strong>Time: ${algorithmInfo.timeComplexity}</strong>
+                            </div>
+                            <div class="complexity-item">
+                                <strong>Space: ${algorithmInfo.spaceComplexity}</strong>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('codeDisplay').innerHTML = `<pre>${algorithmInfo.code}</pre>`;
+                }
+            }
+
+            async startVisualization() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.isPaused = false;
+                this.stats.startTime = Date.now();
+                this.updateStatus('running');
+
+                try {
+                    if (this.currentType === 'sorting') {
+                        await this.runSortingAlgorithm();
+                    } else if (this.currentType === 'searching') {
+                        await this.runSearchingAlgorithm();
+                    } else if (this.currentType === 'graph') {
+                        await this.runGraphAlgorithm();
+                    }
+                    
+                    this.updateStatus('completed');
+                } catch (error) {
+                    console.error('Visualization error:', error);
+                    this.updateStatus('ready');
+                }
+
+                this.isRunning = false;
+            }
+
+            async runSortingAlgorithm() {
+                switch (this.currentAlgorithm) {
+                    case 'bubbleSort':
+                        await this.bubbleSort();
+                        break;
+                    case 'quickSort':
+                        await this.quickSort(0, this.array.length - 1);
+                        break;
+                    case 'mergeSort':
+                        await this.mergeSort(0, this.array.length - 1);
+                        break;
+                    case 'heapSort':
+                        await this.heapSort();
+                        break;
+                    case 'insertionSort':
+                        await this.insertionSort();
+                        break;
+                    case 'selectionSort':
+                        await this.selectionSort();
+                        break;
+                }
+            }
+
+            async runSearchingAlgorithm() {
+                // For searching, we need a target value
+                const target = this.array[Math.floor(Math.random() * this.array.length)];
+                
+                switch (this.currentAlgorithm) {
+                    case 'linearSearch':
+                        await this.linearSearch(target);
+                        break;
+                    case 'binarySearch':
+                        // Sort array first for binary search
+                        this.array.sort((a, b) => a - b);
+                        this.renderArray();
+                        await this.sleep(500);
+                        await this.binarySearch(target);
+                        break;
+                    case 'jumpSearch':
+                        this.array.sort((a, b) => a - b);
+                        this.renderArray();
+                        await this.sleep(500);
+                        await this.jumpSearch(target);
+                        break;
+                }
+            }
+
+            async runGraphAlgorithm() {
+                // Reset graph state
+                this.graph.nodes.forEach(node => {
+                    node.visited = false;
+                    node.current = false;
+                });
+                this.graph.edges.forEach(edge => edge.active = false);
+                this.renderGraph();
+                await this.sleep(500);
+
+                switch (this.currentAlgorithm) {
+                    case 'dfs':
+                        await this.dfs(0);
+                        break;
+                    case 'bfs':
+                        await this.bfs(0);
+                        break;
+                    case 'dijkstra':
+                        await this.dijkstra(0, this.graph.nodes.length - 1);
+                        break;
+                }
+            }
+
+            // Sorting Algorithms
+            async bubbleSort() {
+                const n = this.array.length;
+                for (let i = 0; i < n - 1; i++) {
+                    for (let j = 0; j < n - i - 1; j++) {
+                        if (this.isPaused) await this.waitForResume();
+                        
+                        await this.highlightComparison(j, j + 1);
+                        this.stats.comparisons++;
+                        
+                        if (this.array[j] > this.array[j + 1]) {
+                            await this.swap(j, j + 1);
+                            this.stats.swaps++;
+                        }
+                        
+                        this.updateStats();
+                    }
+                }
+            }
+
+            async quickSort(low, high) {
+                if (low < high) {
+                    const pi = await this.partition(low, high);
+                    await this.quickSort(low, pi - 1);
+                    await this.quickSort(pi + 1, high);
+                }
+            }
+
+            async partition(low, high) {
+                const pivot = this.array[high];
+                let i = low - 1;
+
+                for (let j = low; j < high; j++) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    await this.highlightComparison(j, high);
+                    this.stats.comparisons++;
+                    
+                    if (this.array[j] < pivot) {
+                        i++;
+                        if (i !== j) {
+                            await this.swap(i, j);
+                            this.stats.swaps++;
+                        }
+                    }
+                    this.updateStats();
+                }
+                
+                await this.swap(i + 1, high);
+                this.stats.swaps++;
+                this.updateStats();
+                return i + 1;
+            }
+
+            async mergeSort(left, right) {
+                if (left >= right) return;
+                
+                const mid = Math.floor((left + right) / 2);
+                await this.mergeSort(left, mid);
+                await this.mergeSort(mid + 1, right);
+                await this.merge(left, mid, right);
+            }
+
+            async merge(left, mid, right) {
+                const leftArray = this.array.slice(left, mid + 1);
+                const rightArray = this.array.slice(mid + 1, right + 1);
+                
+                let i = 0, j = 0, k = left;
+                
+                while (i < leftArray.length && j < rightArray.length) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    this.stats.comparisons++;
+                    if (leftArray[i] <= rightArray[j]) {
+                        this.array[k] = leftArray[i];
+                        i++;
+                    } else {
+                        this.array[k] = rightArray[j];
+                        j++;
+                    }
+                    
+                    await this.highlightElement(k);
+                    k++;
+                    this.updateStats();
+                }
+                
+                while (i < leftArray.length) {
+                    this.array[k] = leftArray[i];
+                    await this.highlightElement(k);
+                    i++;
+                    k++;
+                }
+                
+                while (j < rightArray.length) {
+                    this.array[k] = rightArray[j];
+                    await this.highlightElement(k);
+                    j++;
+                    k++;
+                }
+            }
+
+            async insertionSort() {
+                for (let i = 1; i < this.array.length; i++) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    const key = this.array[i];
+                    let j = i - 1;
+                    
+                    await this.highlightElement(i);
+                    
+                    while (j >= 0 && this.array[j] > key) {
+                        await this.highlightComparison(j, j + 1);
+                        this.stats.comparisons++;
+                        this.array[j + 1] = this.array[j];
+                        j--;
+                        this.renderArray();
+                        await this.sleep(this.animationSpeed);
+                        this.updateStats();
+                    }
+                    
+                    this.array[j + 1] = key;
+                    this.renderArray();
+                    await this.sleep(this.animationSpeed);
+                }
+            }
+
+            async selectionSort() {
+                for (let i = 0; i < this.array.length - 1; i++) {
+                    let minIdx = i;
+                    await this.highlightElement(i);
+                    
+                    for (let j = i + 1; j < this.array.length; j++) {
+                        if (this.isPaused) await this.waitForResume();
+                        
+                        await this.highlightComparison(minIdx, j);
+                        this.stats.comparisons++;
+                        
+                        if (this.array[j] < this.array[minIdx]) {
+                            minIdx = j;
+                        }
+                        this.updateStats();
+                    }
+                    
+                    if (minIdx !== i) {
+                        await this.swap(i, minIdx);
+                        this.stats.swaps++;
+                        this.updateStats();
+                    }
+                }
+            }
+
+            async heapSort() {
+                const n = this.array.length;
+                
+                // Build max heap
+                for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+                    await this.heapify(n, i);
+                }
+                
+                // Extract elements from heap
+                for (let i = n - 1; i > 0; i--) {
+                    await this.swap(0, i);
+                    this.stats.swaps++;
+                    await this.heapify(i, 0);
+                    this.updateStats();
+                }
+            }
+
+            async heapify(n, i) {
+                let largest = i;
+                let left = 2 * i + 1;
+                let right = 2 * i + 2;
+                
+                if (left < n) {
+                    await this.highlightComparison(left, largest);
+                    this.stats.comparisons++;
+                    if (this.array[left] > this.array[largest]) {
+                        largest = left;
+                    }
+                }
+                
+                if (right < n) {
+                    await this.highlightComparison(right, largest);
+                    this.stats.comparisons++;
+                    if (this.array[right] > this.array[largest]) {
+                        largest = right;
+                    }
+                }
+                
+                if (largest !== i) {
+                    await this.swap(i, largest);
+                    this.stats.swaps++;
+                    await this.heapify(n, largest);
+                }
+                this.updateStats();
+            }
+
+            // Searching Algorithms
+            async linearSearch(target) {
+                for (let i = 0; i < this.array.length; i++) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    await this.highlightElement(i);
+                    this.stats.comparisons++;
+                    this.stats.arrayAccesses++;
+                    
+                    if (this.array[i] === target) {
+                        await this.highlightFound(i);
+                        this.updateStats();
+                        return i;
+                    }
+                    this.updateStats();
+                }
+                return -1;
+            }
+
+            async binarySearch(target) {
+                let left = 0;
+                let right = this.array.length - 1;
+                
+                while (left <= right) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    const mid = Math.floor((left + right) / 2);
+                    await this.highlightElement(mid);
+                    this.stats.comparisons++;
+                    this.stats.arrayAccesses++;
+                    
+                    if (this.array[mid] === target) {
+                        await this.highlightFound(mid);
+                        this.updateStats();
+                        return mid;
+                    }
+                    
+                    if (this.array[mid] < target) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                    this.updateStats();
+                }
+                return -1;
+            }
+
+            async jumpSearch(target) {
+                const n = this.array.length;
+                const jump = Math.floor(Math.sqrt(n));
+                let prev = 0;
+                
+                // Jump to find the block
+                while (this.array[Math.min(jump, n) - 1] < target) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    await this.highlightElement(Math.min(jump, n) - 1);
+                    this.stats.comparisons++;
+                    this.stats.arrayAccesses++;
+                    
+                    prev = jump;
+                    jump += Math.floor(Math.sqrt(n));
+                    
+                    if (prev >= n) {
+                        this.updateStats();
+                        return -1;
+                    }
+                    this.updateStats();
+                }
+                
+                // Linear search in the identified block
+                while (this.array[prev] < target) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    await this.highlightElement(prev);
+                    this.stats.comparisons++;
+                    this.stats.arrayAccesses++;
+                    
+                    prev++;
+                    if (prev === Math.min(jump, n)) {
+                        this.updateStats();
+                        return -1;
+                    }
+                    this.updateStats();
+                }
+                
+                if (this.array[prev] === target) {
+                    await this.highlightFound(prev);
+                    return prev;
+                }
+                
+                return -1;
+            }
+
+            // Graph Algorithms
+            async dfs(start) {
+                const visited = new Set();
+                const stack = [start];
+                
+                while (stack.length > 0) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    const current = stack.pop();
+                    
+                    if (!visited.has(current)) {
+                        visited.add(current);
+                        this.graph.nodes[current].visited = true;
+                        this.graph.nodes[current].current = true;
+                        
+                        this.renderGraph();
+                        await this.sleep(this.animationSpeed);
+                        
+                        this.graph.nodes[current].current = false;
+                        this.stats.comparisons++;
+                        
+                        // Add unvisited neighbors to stack
+                        const neighbors = this.graph.adjacencyList.get(current) || [];
+                        for (const neighbor of neighbors) {
+                            if (!visited.has(neighbor)) {
+                                stack.push(neighbor);
+                                
+                                // Highlight edge
+                                const edge = this.graph.edges.find(e => 
+                                    (e.from === current && e.to === neighbor) ||
+                                    (e.from === neighbor && e.to === current)
+                                );
+                                if (edge) {
+                                    edge.active = true;
+                                    this.renderGraph();
+                                    await this.sleep(this.animationSpeed / 2);
+                                    edge.active = false;
+                                }
+                            }
+                        }
+                        this.updateStats();
+                    }
+                }
+            }
+
+            async bfs(start) {
+                const visited = new Set();
+                const queue = [start];
+                
+                while (queue.length > 0) {
+                    if (this.isPaused) await this.waitForResume();
+                    
+                    const current = queue.shift();
+                    
+                    if (!visited.has(current)) {
+                        visited.add(current);
+                        this.graph.nodes[current].visited = true;
+                        this.graph.nodes[current].current = true;
+                        
+                        this.renderGraph();
+                        await this.sleep(this.animationSpeed);
+                        
+                        this.graph.nodes[current].current = false;
+                        this.stats.comparisons++;
+                        
+                        // Add unvisited neighbors to queue
+                        const neighbors = this.graph.adjacencyList.get(current) || [];
+                        for (const neighbor of neighbors) {
+                            if (!visited.has(neighbor)) {
+                                queue.push(neighbor);
+                                
+                                // Highlight edge
+                                const edge = this.graph.edges.find(e => 
+                                    (e.from === current && e.to === neighbor) ||
+                                    (e.from === neighbor && e.to === current)
+                                );
+                                if (edge) {
+                                    edge.active = true;
+                                    this.renderGraph();
+                                    await this.sleep(this.animationSpeed / 2);
+                                    edge.active = false;
+                                }
+                            }
+                        }
+                        this.updateStats();
+                    }
+                }
+            }
+
+            async dijkstra(start, end) {
+                const distances = new Map();
+                const visited = new Set();
+                const previous = new Map();
+                const pq = [];
+
+                // Initialize distances
+                this.graph.nodes.forEach(node => {
+                    distances.set(node.id, node.id === start ? 0 : Infinity);
+                    pq.push({ id: node.id, distance: distances.get(node.id) });
+                });
+
+                while (pq.length > 0) {
+                    if (this.isPaused) await this.waitForResume();
+
+                    // Get node with minimum distance
+                    pq.sort((a, b) => a.distance - b.distance);
+                    const current = pq.shift();
+
+                    if (visited.has(current.id) || current.distance === Infinity) continue;
+
+                    visited.add(current.id);
+                    this.graph.nodes[current.id].visited = true;
+                    this.graph.nodes[current.id].current = true;
+
+                    this.renderGraph();
+                    await this.sleep(this.animationSpeed);
+
+                    this.graph.nodes[current.id].current = false;
+                    this.stats.comparisons++;
+
+                    if (current.id === end) break;
+
+                    // Update distances to neighbors
+                    const neighbors = this.graph.adjacencyList.get(current.id) || [];
+                    for (const neighbor of neighbors) {
+                        if (!visited.has(neighbor)) {
+                            const newDistance = distances.get(current.id) + 1; // Assuming weight 1
+                            if (newDistance < distances.get(neighbor)) {
+                                distances.set(neighbor, newDistance);
+                                previous.set(neighbor, current.id);
+                                
+                                // Update priority queue
+                                const pqItem = pq.find(item => item.id === neighbor);
+                                if (pqItem) pqItem.distance = newDistance;
+                            }
+                        }
+                    }
+                    this.updateStats();
+                }
+
+                // Highlight shortest path
+                if (previous.has(end)) {
+                    await this.highlightPath(previous, start, end);
+                }
+            }
+
+            async highlightPath(previous, start, end) {
+                const path = [];
+                let current = end;
+                
+                while (current !== undefined) {
+                    path.unshift(current);
+                    current = previous.get(current);
+                }
+
+                // Highlight path nodes
+                for (const nodeId of path) {
+                    this.graph.nodes[nodeId].path = true;
+                    const circle = this.graphSvg.querySelector(`circle:nth-of-type(${nodeId + 1})`);
+                    if (circle) circle.setAttribute('class', 'graph-node path-node');
+                }
+
+                // Highlight path edges
+                for (let i = 0; i < path.length - 1; i++) {
+                    const edge = this.graph.edges.find(e => 
+                        (e.from === path[i] && e.to === path[i + 1]) ||
+                        (e.from === path[i + 1] && e.to === path[i])
+                    );
+                    if (edge) edge.active = true;
+                }
+
+                this.renderGraph();
+            }
+
+            // Animation helpers
+            async highlightComparison(i, j) {
+                this.renderArrayWithHighlight([i, j], 'comparing');
+                await this.sleep(this.animationSpeed);
+            }
+
+            async highlightElement(i) {
+                this.renderArrayWithHighlight([i], 'current');
+                await this.sleep(this.animationSpeed);
+            }
+
+            async highlightFound(i) {
+                this.renderArrayWithHighlight([i], 'search-result');
+                await this.sleep(this.animationSpeed * 2);
+            }
+
+            async swap(i, j) {
+                [this.array[i], this.array[j]] = [this.array[j], this.array[i]];
+                this.renderArrayWithHighlight([i, j], 'comparing');
+                await this.sleep(this.animationSpeed);
+            }
+
+            renderArrayWithHighlight(indices, className) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const barWidth = Math.min(this.canvas.width / this.array.length - 2, 50);
+                const maxHeight = this.canvas.height - 50;
+                const maxValue = Math.max(...this.array);
+
+                this.array.forEach((value, index) => {
+                    const barHeight = (value / maxValue) * maxHeight;
+                    const x = index * (barWidth + 2) + (this.canvas.width - (this.array.length * (barWidth + 2))) / 2;
+                    const y = this.canvas.height - barHeight - 25;
+
+                    // Determine color based on highlighting
+                    let color = '#4ecdc4';
+                    if (indices.includes(index)) {
+                        switch (className) {
+                            case 'comparing':
+                                color = '#ff6b6b';
+                                break;
+                            case 'current':
+                                color = '#ffa502';
+                                break;
+                            case 'search-result':
+                                color = '#2ed573';
+                                break;
+                        }
+                    }
+
+                    // Bar
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(x, y, barWidth, barHeight);
+
+                    // Add glow effect for highlighted elements
+                    if (indices.includes(index)) {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 10;
+                        this.ctx.fillRect(x, y, barWidth, barHeight);
+                        this.ctx.shadowBlur = 0;
+                    }
+
+                    // Value text
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(value, x + barWidth/2, y - 5);
+                });
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async waitForResume() {
+                while (this.isPaused) {
+                    await this.sleep(50);
+                }
+            }
+
+            pauseVisualization() {
+                this.isPaused = !this.isPaused;
+                document.getElementById('pauseVisualization').textContent = this.isPaused ? 'Resume' : 'Pause';
+            }
+
+            resetVisualization() {
+                this.isRunning = false;
+                this.isPaused = false;
+                document.getElementById('pauseVisualization').textContent = 'Pause';
+                
+                this.array = [...this.originalArray];
+                this.resetStats();
+                this.updateStatus('ready');
+                
+                if (this.currentType === 'graph') {
+                    this.generateRandomGraph();
+                } else {
+                    this.renderArray();
+                }
+            }
+
+            resetStats() {
+                this.stats = {
+                    comparisons: 0,
+                    swaps: 0,
+                    arrayAccesses: 0,
+                    startTime: Date.now()
+                };
+                this.updateStats();
+            }
+
+            updateStats() {
+                document.getElementById('comparisons').textContent = this.stats.comparisons;
+                document.getElementById('swaps').textContent = this.stats.swaps;
+                document.getElementById('arrayAccesses').textContent = this.stats.arrayAccesses;
+                document.getElementById('timeElapsed').textContent = Date.now() - this.stats.startTime;
+            }
+
+            updateStatus(status) {
+                const statusEl = document.getElementById('status');
+                statusEl.className = `status ${status}`;
+                
+                const messages = {
+                    ready: 'Ready to visualize',
+                    running: 'Algorithm running...',
+                    completed: 'Algorithm completed!',
+                    paused: 'Algorithm paused'
+                };
+                
+                statusEl.textContent = messages[status] || status;
+            }
+        }
+
+        // Initialize the visualizer
+        document.addEventListener('DOMContentLoaded', () => {
+            new AlgorithmVisualizer();
+        });
+    </script>
+</body>
+</html>
