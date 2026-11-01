@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Visualizer Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .visualization-area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .algorithm-selector {
+            margin-bottom: 25px;
+        }
+
+        .algorithm-selector h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .algorithm-buttons {
+            display: grid;
+            gap: 10px;
+        }
+
+        .algo-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .algo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .algo-btn.active {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .controls {
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: #667eea;
+        }
+
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+            color: white;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #dc3545, #e83e8c);
+            color: white;
+        }
+
+        .generate-btn {
+            background: linear-gradient(45deg, #17a2b8, #6f42c1);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stats h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .visualization-container {
+            min-height: 400px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .bar {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            min-width: 20px;
+        }
+
+        .bar.comparing {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+            transform: scale(1.1);
+        }
+
+        .bar.swapping {
+            background: linear-gradient(45deg, #dc3545, #e83e8c);
+            transform: scale(1.2);
+        }
+
+        .bar.sorted {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .bar.pivot {
+            background: linear-gradient(45deg, #6f42c1, #e83e8c);
+            transform: scale(1.1);
+        }
+
+        .code-panel {
+            background: #2d3748;
+            border-radius: 8px;
+            padding: 20px;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            margin-bottom: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .code-line.highlight {
+            background: rgba(102, 126, 234, 0.3);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .complexity-info {
+            background: linear-gradient(45deg, #17a2b8, #6f42c1);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .complexity-info h4 {
+            margin-bottom: 10px;
+        }
+
+        .complexity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .graph-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .graph-node {
+            aspect-ratio: 1;
+            background: #6c757d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .graph-node.start {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            transform: scale(1.2);
+        }
+
+        .graph-node.target {
+            background: linear-gradient(45deg, #dc3545, #e83e8c);
+            transform: scale(1.2);
+        }
+
+        .graph-node.visited {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+        }
+
+        .graph-node.path {
+            background: linear-gradient(45deg, #6f42c1, #e83e8c);
+            animation: pulse 1s infinite;
+        }
+
+        .graph-node.wall {
+            background: #343a40;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .search-controls {
+            display: none;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-controls.active {
+            display: flex;
+        }
+
+        .mode-btn {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Algorithm Visualizer Pro</h1>
+            <p>Interactive visualization of sorting, searching, and graph traversal algorithms</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="algorithm-selector">
+                    <h3>Select Algorithm</h3>
+                    <div class="algorithm-buttons">
+                        <button class="algo-btn active" data-algo="bubble">Bubble Sort</button>
+                        <button class="algo-btn" data-algo="quick">Quick Sort</button>
+                        <button class="algo-btn" data-algo="merge">Merge Sort</button>
+                        <button class="algo-btn" data-algo="heap">Heap Sort</button>
+                        <button class="algo-btn" data-algo="insertion">Insertion Sort</button>
+                        <button class="algo-btn" data-algo="linear">Linear Search</button>
+                        <button class="algo-btn" data-algo="binary">Binary Search</button>
+                        <button class="algo-btn" data-algo="bfs">BFS Pathfinding</button>
+                        <button class="algo-btn" data-algo="dfs">DFS Pathfinding</button>
+                        <button class="algo-btn" data-algo="dijkstra">Dijkstra's Algorithm</button>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="speed">Animation Speed</label>
+                        <input type="range" id="speed" min="1" max="10" value="5">
+                        <span id="speed-value">500ms</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="array-size">Array Size</label>
+                        <input type="range" id="array-size" min="10" max="100" value="30">
+                        <span id="size-value">30</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="search-value">Search Value</label>
+                        <input type="number" id="search-value" value="50" min="1" max="100">
+                    </div>
+                </div>
+
+                <div class="search-controls" id="search-controls">
+                    <button class="mode-btn active" data-mode="start">Set Start</button>
+                    <button class="mode-btn" data-mode="target">Set Target</button>
+                    <button class="mode-btn" data-mode="wall">Draw Walls</button>
+                    <button class="mode-btn" data-mode="clear">Clear Walls</button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn start-btn" id="start-btn">Start Visualization</button>
+                    <button class="action-btn pause-btn" id="pause-btn">Pause</button>
+                    <button class="action-btn reset-btn" id="reset-btn">Reset</button>
+                    <button class="action-btn generate-btn" id="generate-btn">Generate New Data</button>
+                </div>
+
+                <div class="stats" id="stats">
+                    <h4>Statistics</h4>
+                    <div class="stat-item">
+                        <span>Comparisons:</span>
+                        <span id="comparisons">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Swaps:</span>
+                        <span id="swaps">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Array Accesses:</span>
+                        <span id="accesses">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Time Elapsed:</span>
+                        <span id="time-elapsed">0ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualization-area">
+                <div class="complexity-info" id="complexity-info">
+                    <h4>Bubble Sort</h4>
+                    <div class="complexity-grid">
+                        <div><strong>Time:</strong> O(n²)</div>
+                        <div><strong>Space:</strong> O(1)</div>
+                        <div><strong>Stable:</strong> Yes</div>
+                        <div><strong>In-place:</strong> Yes</div>
+                    </div>
+                </div>
+
+                <div class="visualization-container" id="visualization">
+                    <!-- Bars will be generated here -->
+                </div>
+
+                <div class="code-panel" id="code-panel">
+                    <!-- Code will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AlgorithmVisualizer {
+            constructor() {
+                this.array = [];
+                this.arraySize = 30;
+                this.speed = 500;
+                this.isRunning = false;
+                this.isPaused = false;
+                this.currentAlgorithm = 'bubble';
+                this.stats = { comparisons: 0, swaps: 0, accesses: 0, timeElapsed: 0 };
+                this.startTime = 0;
+                this.searchValue = 50;
+                
+                // Graph-specific properties
+                this.grid = [];
+                this.gridSize = 8;
+                this.startNode = { row: 0, col: 0 };
+                this.targetNode = { row: 7, col: 7 };
+                this.currentMode = 'start';
+                this.walls = new Set();
+                
+                this.initializeEventListeners();
+                this.generateArray();
+                this.updateCodePanel();
+            }
+
+            initializeEventListeners() {
+                // Algorithm selection
+                document.querySelectorAll('.algo-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelector('.algo-btn.active').classList.remove('active');
+                        e.target.classList.add('active');
+                        this.currentAlgorithm = e.target.dataset.algo;
+                        this.resetVisualization();
+                        this.updateComplexityInfo();
+                        this.updateCodePanel();
+                        this.toggleSearchControls();
+                    });
+                });
+
+                // Controls
+                document.getElementById('speed').addEventListener('input', (e) => {
+                    this.speed = 1100 - (parseInt(e.target.value) * 100);
+                    document.getElementById('speed-value').textContent = this.speed + 'ms';
+                });
+
+                document.getElementById('array-size').addEventListener('input', (e) => {
+                    this.arraySize = parseInt(e.target.value);
+                    document.getElementById('size-value').textContent = this.arraySize;
+                    this.generateArray();
+                });
+
+                document.getElementById('search-value').addEventListener('input', (e) => {
+                    this.searchValue = parseInt(e.target.value);
+                });
+
+                // Action buttons
+                document.getElementById('start-btn').addEventListener('click', () => this.startVisualization());
+                document.getElementById('pause-btn').addEventListener('click', () => this.pauseVisualization());
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetVisualization());
+                document.getElementById('generate-btn').addEventListener('click', () => this.generateArray());
+
+                // Search mode controls
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelector('.mode-btn.active').classList.remove('active');
+                        e.target.classList.add('active');
+                        this.currentMode = e.target.dataset.mode;
+                    });
+                });
+            }
+
+            toggleSearchControls() {
+                const controls = document.getElementById('search-controls');
+                const isGraphAlgorithm = ['bfs', 'dfs', 'dijkstra'].includes(this.currentAlgorithm);
+                
+                if (isGraphAlgorithm) {
+                    controls.classList.add('active');
+                    this.initializeGrid();
+                } else {
+                    controls.classList.remove('active');
+                    this.generateArray();
+                }
+            }
+
+            generateArray() {
+                this.array = [];
+                for (let i = 0; i < this.arraySize; i++) {
+                    this.array.push(Math.floor(Math.random() * 300) + 10);
+                }
+                this.renderBars();
+                this.resetStats();
+            }
+
+            initializeGrid() {
+                this.grid = [];
+                this.walls.clear();
+                const container = document.getElementById('visualization');
+                container.innerHTML = '';
+                container.className = 'graph-container';
+
+                for (let row = 0; row < this.gridSize; row++) {
+                    this.grid[row] = [];
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const node = document.createElement('div');
+                        node.className = 'graph-node';
+                        node.textContent = `${row},${col}`;
+                        node.style.fontSize = '10px';
+                        node.dataset.row = row;
+                        node.dataset.col = col;
+                        
+                        if (row === this.startNode.row && col === this.startNode.col) {
+                            node.classList.add('start');
+                        } else if (row === this.targetNode.row && col === this.targetNode.col) {
+                            node.classList.add('target');
+                        }
+
+                        node.addEventListener('click', () => this.handleNodeClick(row, col, node));
+                        container.appendChild(node);
+                        this.grid[row][col] = { row, col, element: node, visited: false, distance: Infinity, parent: null };
+                    }
+                }
+            }
+
+            handleNodeClick(row, col, element) {
+                if (this.isRunning) return;
+
+                switch (this.currentMode) {
+                    case 'start':
+                        document.querySelector('.graph-node.start')?.classList.remove('start');
+                        element.classList.add('start');
+                        this.startNode = { row, col };
+                        break;
+                    case 'target':
+                        document.querySelector('.graph-node.target')?.classList.remove('target');
+                        element.classList.add('target');
+                        this.targetNode = { row, col };
+                        break;
+                    case 'wall':
+                        if (!element.classList.contains('start') && !element.classList.contains('target')) {
+                            element.classList.add('wall');
+                            this.walls.add(`${row},${col}`);
+                        }
+                        break;
+                    case 'clear':
+                        element.classList.remove('wall', 'visited', 'path');
+                        this.walls.delete(`${row},${col}`);
+                        break;
+                }
+            }
+
+            renderBars() {
+                const container = document.getElementById('visualization');
+                container.innerHTML = '';
+                container.className = 'visualization-container';
+                
+                const maxValue = Math.max(...this.array);
+                const containerHeight = 350;
+                
+                this.array.forEach((value, index) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'bar';
+                    bar.style.height = `${(value / maxValue) * containerHeight}px`;
+                    bar.style.width = `${Math.max(20, 800 / this.array.length - 2)}px`;
+                    bar.textContent = this.array.length <= 50 ? value : '';
+                    bar.dataset.index = index;
+                    container.appendChild(bar);
+                });
+            }
+
+            async startVisualization() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.isPaused = false;
+                this.startTime = Date.now();
+                this.updateButtons();
+
+                try {
+                    switch (this.currentAlgorithm) {
+                        case 'bubble': await this.bubbleSort(); break;
+                        case 'quick': await this.quickSort(0, this.array.length - 1); break;
+                        case 'merge': await this.mergeSort(0, this.array.length - 1); break;
+                        case 'heap': await this.heapSort(); break;
+                        case 'insertion': await this.insertionSort(); break;
+                        case 'linear': await this.linearSearch(); break;
+                        case 'binary': await this.binarySearch(); break;
+                        case 'bfs': await this.breadthFirstSearch(); break;
+                        case 'dfs': await this.depthFirstSearch(); break;
+                        case 'dijkstra': await this.dijkstraAlgorithm(); break;
+                    }
+                } catch (error) {
+                    console.log('Visualization stopped');
+                }
+
+                this.isRunning = false;
+                this.updateButtons();
+            }
+
+            pauseVisualization() {
+                this.isPaused = !this.isPaused;
+                document.getElementById('pause-btn').textContent = this.isPaused ? 'Resume' : 'Pause';
+            }
+
+            resetVisualization() {
+                this.isRunning = false;
+                this.isPaused = false;
+                this.resetStats();
+                this.updateButtons();
+                
+                if (['bfs', 'dfs', 'dijkstra'].includes(this.currentAlgorithm)) {
+                    this.initializeGrid();
+                } else {
+                    this.generateArray();
+                }
+                
+                this.updateCodePanel();
+            }
+
+            resetStats() {
+                this.stats = { comparisons: 0, swaps: 0, accesses: 0, timeElapsed: 0 };
+                this.updateStats();
+            }
+
+            updateStats() {
+                if (this.startTime) {
+                    this.stats.timeElapsed = Date.now() - this.startTime;
+                }
+                document.getElementById('comparisons').textContent = this.stats.comparisons;
+                document.getElementById('swaps').textContent = this.stats.swaps;
+                document.getElementById('accesses').textContent = this.stats.accesses;
+                document.getElementById('time-elapsed').textContent = this.stats.timeElapsed + 'ms';
+            }
+
+            updateButtons() {
+                document.getElementById('start-btn').disabled = this.isRunning;
+                document.getElementById('pause-btn').disabled = !this.isRunning;
+                document.getElementById('pause-btn').textContent = this.isPaused ? 'Resume' : 'Pause';
+            }
+
+            async delay() {
+                while (this.isPaused) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                return new Promise(resolve => setTimeout(resolve, this.speed));
+            }
+
+            async highlightBars(indices, className = 'comparing') {
+                indices.forEach(i => {
+                    if (i >= 0 && i < this.array.length) {
+                        document.querySelector(`[data-index="${i}"]`).classList.add(className);
+                    }
+                });
+                await this.delay();
+                indices.forEach(i => {
+                    if (i >= 0 && i < this.array.length) {
+                        document.querySelector(`[data-index="${i}"]`).classList.remove(className);
+                    }
+                });
+            }
+
+            async swap(i, j) {
+                this.stats.swaps++;
+                this.stats.accesses += 2;
+                
+                await this.highlightBars([i, j], 'swapping');
+                
+                [this.array[i], this.array[j]] = [this.array[j], this.array[i]];
+                
+                const bar1 = document.querySelector(`[data-index="${i}"]`);
+                const bar2 = document.querySelector(`[data-index="${j}"]`);
+                
+                const maxValue = Math.max(...this.array);
+                const containerHeight = 350;
+                
+                bar1.style.height = `${(this.array[i] / maxValue) * containerHeight}px`;
+                bar2.style.height = `${(this.array[j] / maxValue) * containerHeight}px`;
+                bar1.textContent = this.array.length <= 50 ? this.array[i] : '';
+                bar2.textContent = this.array.length <= 50 ? this.array[j] : '';
+                
+                this.updateStats();
+            }
+
+            async compare(i, j) {
+                this.stats.comparisons++;
+                this.stats.accesses += 2;
+                await this.highlightBars([i, j]);
+                this.updateStats();
+                return this.array[i] > this.array[j];
+            }
+
+            // Sorting Algorithms
+            async bubbleSort() {
+                for (let i = 0; i < this.array.length - 1; i++) {
+                    for (let j = 0; j < this.array.length - i - 1; j++) {
+                        if (await this.compare(j, j + 1)) {
+                            await this.swap(j, j + 1);
+                        }
+                    }
+                    document.querySelector(`[data-index="${this.array.length - i - 1}"]`).classList.add('sorted');
+                }
+                document.querySelector(`[data-index="0"]`).classList.add('sorted');
+            }
+
+            async quickSort(low, high) {
+                if (low < high) {
+                    const pi = await this.partition(low, high);
+                    await Promise.all([
+                        this.quickSort(low, pi - 1),
+                        this.quickSort(pi + 1, high)
+                    ]);
+                }
+            }
+
+            async partition(low, high) {
+                const pivot = this.array[high];
+                document.querySelector(`[data-index="${high}"]`).classList.add('pivot');
+                let i = low - 1;
+
+                for (let j = low; j < high; j++) {
+                    this.stats.comparisons++;
+                    await this.highlightBars([j, high]);
+                    if (this.array[j] < pivot) {
+                        i++;
+                        if (i !== j) {
+                            await this.swap(i, j);
+                        }
+                    }
+                }
+                
+                document.querySelector(`[data-index="${high}"]`).classList.remove('pivot');
+                if (i + 1 !== high) {
+                    await this.swap(i + 1, high);
+                }
+                document.querySelector(`[data-index="${i + 1}"]`).classList.add('sorted');
+                return i + 1;
+            }
+
+            async mergeSort(left, right) {
+                if (left < right) {
+                    const mid = Math.floor((left + right) / 2);
+                    await this.mergeSort(left, mid);
+                    await this.mergeSort(mid + 1, right);
+                    await this.merge(left, mid, right);
+                }
+            }
+
+            async merge(left, mid, right) {
+                const leftArr = this.array.slice(left, mid + 1);
+                const rightArr = this.array.slice(mid + 1, right + 1);
+                
+                let i = 0, j = 0, k = left;
+                
+                while (i < leftArr.length && j < rightArr.length) {
+                    this.stats.comparisons++;
+                    await this.highlightBars([k]);
+                    
+                    if (leftArr[i] <= rightArr[j]) {
+                        this.array[k] = leftArr[i];
+                        i++;
+                    } else {
+                        this.array[k] = rightArr[j];
+                        j++;
+                    }
+                    
+                    const bar = document.querySelector(`[data-index="${k}"]`);
+                    const maxValue = Math.max(...this.array);
+                    bar.style.height = `${(this.array[k] / maxValue) * 350}px`;
+                    bar.textContent = this.array.length <= 50 ? this.array[k] : '';
+                    k++;
+                    this.stats.accesses++;
+                    this.updateStats();
+                }
+                
+                while (i < leftArr.length) {
+                    this.array[k] = leftArr[i];
+                    const bar = document.querySelector(`[data-index="${k}"]`);
+                    const maxValue = Math.max(...this.array);
+                    bar.style.height = `${(this.array[k] / maxValue) * 350}px`;
+                    bar.textContent = this.array.length <= 50 ? this.array[k] : '';
+                    i++;
+                    k++;
+                    await this.delay();
+                }
+                
+                while (j < rightArr.length) {
+                    this.array[k] = rightArr[j];
+                    const bar = document.querySelector(`[data-index="${k}"]`);
+                    const maxValue = Math.max(...this.array);
+                    bar.style.height = `${(this.array[k] / maxValue) * 350}px`;
+                    bar.textContent = this.array.length <= 50 ? this.array[k] : '';
+                    j++;
+                    k++;
+                    await this.delay();
+                }
+                
+                for (let idx = left; idx <= right; idx++) {
+                    document.querySelector(`[data-index="${idx}"]`).classList.add('sorted');
+                }
+            }
+
+            async heapSort() {
+                // Build max heap
+                for (let i = Math.floor(this.array.length / 2) - 1; i >= 0; i--) {
+                    await this.heapify(this.array.length, i);
+                }
+                
+                // Extract elements from heap one by one
+                for (let i = this.array.length - 1; i > 0; i--) {
+                    await this.swap(0, i);
+                    document.querySelector(`[data-index="${i}"]`).classList.add('sorted');
+                    await this.heapify(i, 0);
+                }
+                document.querySelector(`[data-index="0"]`).classList.add('sorted');
+            }
+
+            async heapify(n, i) {
+                let largest = i;
+                let left = 2 * i + 1;
+                let right = 2 * i + 2;
+                
+                if (left < n && await this.compare(left, largest)) {
+                    largest = left;
+                }
+                
+                if (right < n && await this.compare(right, largest)) {
+                    largest = right;
+                }
+                
+                if (largest !== i) {
+                    await this.swap(i, largest);
+                    await this.heapify(n, largest);
+                }
+            }
+
+            async insertionSort() {
+                for (let i = 1; i < this.array.length; i++) {
+                    const key = this.array[i];
+                    let j = i - 1;
+                    
+                    await this.highlightBars([i], 'comparing');
+                    
+                    while (j >= 0 && await this.compare(j, -1, key)) {
+                        this.array[j + 1] = this.array[j];
+                        const bar = document.querySelector(`[data-index="${j + 1}"]`);
+                        const maxValue = Math.max(...this.array);
+                        bar.style.height = `${(this.array[j + 1] / maxValue) * 350}px`;
+                        bar.textContent = this.array.length <= 50 ? this.array[j + 1] : '';
+                        j--;
+                        this.stats.accesses++;
+                        await this.delay();
+                    }
+                    
+                    this.array[j + 1] = key;
+                    const bar = document.querySelector(`[data-index="${j + 1}"]`);
+                    const maxValue = Math.max(...this.array);
+                    bar.style.height = `${(key / maxValue) * 350}px`;
+                    bar.textContent = this.array.length <= 50 ? key : '';
+                    
+                    for (let k = 0; k <= i; k++) {
+                        document.querySelector(`[data-index="${k}"]`).classList.add('sorted');
+                    }
+                    await this.delay();
+                }
+            }
+
+            // Search Algorithms
+            async linearSearch() {
+                let found = false;
+                for (let i = 0; i < this.array.length; i++) {
+                    await this.highlightBars([i], 'comparing');
+                    this.stats.comparisons++;
+                    this.stats.accesses++;
+                    this.updateStats();
+                    
+                    if (this.array[i] === this.searchValue) {
+                        document.querySelector(`[data-index="${i}"]`).classList.add('sorted');
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    alert(`Value ${this.searchValue} not found in the array!`);
+                }
+            }
+
+            async binarySearch() {
+                // First sort the array
+                const originalArray = [...this.array];
+                this.array.sort((a, b) => a - b);
+                this.renderBars();
+                await this.delay();
+                
+                let left = 0;
+                let right = this.array.length - 1;
+                let found = false;
+                
+                while (left <= right) {
+                    const mid = Math.floor((left + right) / 2);
+                    await this.highlightBars([left, mid, right], 'comparing');
+                    
+                    this.stats.comparisons++;
+                    this.stats.accesses++;
+                    this.updateStats();
+                    
+                    if (this.array[mid] === this.searchValue) {
+                        document.querySelector(`[data-index="${mid}"]`).classList.add('sorted');
+                        found = true;
+                        break;
+                    } else if (this.array[mid] < this.searchValue) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                
+                if (!found) {
+                    alert(`Value ${this.searchValue} not found in the array!`);
+                }
+            }
+
+            // Graph Algorithms
+            async breadthFirstSearch() {
+                const queue = [this.grid[this.startNode.row][this.startNode.col]];
+                const visited = new Set();
+                const path = [];
+                
+                while (queue.length > 0) {
+                    const current = queue.shift();
+                    const key = `${current.row},${current.col}`;
+                    
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+                    
+                    current.element.classList.add('visited');
+                    await this.delay();
+                    
+                    if (current.row === this.targetNode.row && current.col === this.targetNode.col) {
+                        await this.reconstructPath(current);
+                        return;
+                    }
+                    
+                    const neighbors = this.getNeighbors(current.row, current.col);
+                    for (const neighbor of neighbors) {
+                        const neighborKey = `${neighbor.row},${neighbor.col}`;
+                        if (!visited.has(neighborKey) && !this.walls.has(neighborKey)) {
+                            neighbor.parent = current;
+                            queue.push(neighbor);
+                        }
+                    }
+                    
+                    this.stats.accesses++;
+                    this.updateStats();
+                }
+                
+                alert('No path found!');
+            }
+
+            async depthFirstSearch() {
+                const visited = new Set();
+                const stack = [this.grid[this.startNode.row][this.startNode.col]];
+                
+                while (stack.length > 0) {
+                    const current = stack.pop();
+                    const key = `${current.row},${current.col}`;
+                    
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+                    
+                    current.element.classList.add('visited');
+                    await this.delay();
+                    
+                    if (current.row === this.targetNode.row && current.col === this.targetNode.col) {
+                        await this.reconstructPath(current);
+                        return;
+                    }
+                    
+                    const neighbors = this.getNeighbors(current.row, current.col);
+                    for (const neighbor of neighbors.reverse()) {
+                        const neighborKey = `${neighbor.row},${neighbor.col}`;
+                        if (!visited.has(neighborKey) && !this.walls.has(neighborKey)) {
+                            neighbor.parent = current;
+                            stack.push(neighbor);
+                        }
+                    }
+                    
+                    this.stats.accesses++;
+                    this.updateStats();
+                }
+                
+                alert('No path found!');
+            }
+
+            async dijkstraAlgorithm() {
+                const distances = new Map();
+                const unvisited = new Set();
+                const previous = new Map();
+                
+                // Initialize distances
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const key = `${row},${col}`;
+                        distances.set(key, Infinity);
+                        unvisited.add(key);
+                    }
+                }
+                
+                const startKey = `${this.startNode.row},${this.startNode.col}`;
+                distances.set(startKey, 0);
+                
+                while (unvisited.size > 0) {
+                    // Find unvisited node with minimum distance
+                    let current = null;
+                    let minDistance = Infinity;
+                    
+                    for (const node of unvisited) {
+                        if (distances.get(node) < minDistance) {
+                            minDistance = distances.get(node);
+                            current = node;
+                        }
+                    }
+                    
+                    if (current === null || minDistance === Infinity) break;
+                    
+                    unvisited.delete(current);
+                    const [row, col] = current.split(',').map(Number);
+                    const currentNode = this.grid[row][col];
+                    
+                    currentNode.element.classList.add('visited');
+                    await this.delay();
+                    
+                    if (row === this.targetNode.row && col === this.targetNode.col) {
+                        await this.reconstructPathDijkstra(previous, current);
+                        return;
+                    }
+                    
+                    const neighbors = this.getNeighbors(row, col);
+                    for (const neighbor of neighbors) {
+                        const neighborKey = `${neighbor.row},${neighbor.col}`;
+                        if (this.walls.has(neighborKey)) continue;
+                        
+                        const alt = distances.get(current) + 1; // Weight of 1 for each step
+                        if (alt < distances.get(neighborKey)) {
+                            distances.set(neighborKey, alt);
+                            previous.set(neighborKey, current);
+                        }
+                    }
+                    
+                    this.stats.accesses++;
+                    this.updateStats();
+                }
+                
+                alert('No path found!');
+            }
+
+            async reconstructPath(node) {
+                const path = [];
+                let current = node;
+                
+                while (current && current.parent) {
+                    path.unshift(current);
+                    current = current.parent;
+                }
+                
+                for (const pathNode of path) {
+                    pathNode.element.classList.add('path');
+                    await this.delay();
+                }
+            }
+
+            async reconstructPathDijkstra(previous, target) {
+                const path = [];
+                let current = target;
+                
+                while (current) {
+                    path.unshift(current);
+                    current = previous.get(current);
+                }
+                
+                for (const nodeKey of path) {
+                    const [row, col] = nodeKey.split(',').map(Number);
+                    this.grid[row][col].element.classList.add('path');
+                    await this.delay();
+                }
+            }
+
+            getNeighbors(row, col) {
+                const neighbors = [];
+                const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // up, down, left, right
+                
+                for (const [dr, dc] of directions) {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    
+                    if (newRow >= 0 && newRow < this.gridSize && newCol >= 0 && newCol < this.gridSize) {
+                        neighbors.push(this.grid[newRow][newCol]);
+                    }
+                }
+                
+                return neighbors;
+            }
+
+            updateComplexityInfo() {
+                const complexityData = {
+                    bubble: { name: 'Bubble Sort', time: 'O(n²)', space: 'O(1)', stable: 'Yes', inPlace: 'Yes' },
+                    quick: { name: 'Quick Sort', time: 'O(n log n) avg', space: 'O(log n)', stable: 'No', inPlace: 'Yes' },
+                    merge: { name: 'Merge Sort', time: 'O(n log n)', space: 'O(n)', stable: 'Yes', inPlace: 'No' },
+                    heap: { name: 'Heap Sort', time: 'O(n log n)', space: 'O(1)', stable: 'No', inPlace: 'Yes' },
+                    insertion: { name: 'Insertion Sort', time: 'O(n²)', space: 'O(1)', stable: 'Yes', inPlace: 'Yes' },
+                    linear: { name: 'Linear Search', time: 'O(n)', space: 'O(1)', stable: 'N/A', inPlace: 'Yes' },
+                    binary: { name: 'Binary Search', time: 'O(log n)', space: 'O(1)', stable: 'N/A', inPlace: 'Yes' },
+                    bfs: { name: 'Breadth-First Search', time: 'O(V + E)', space: 'O(V)', stable: 'N/A', inPlace: 'No' },
+                    dfs: { name: 'Depth-First Search', time: 'O(V + E)', space: 'O(V)', stable: 'N/A', inPlace: 'No' },
+                    dijkstra: { name: "Dijkstra's Algorithm", time: 'O(V²)', space: 'O(V)', stable: 'N/A', inPlace: 'No' }
+                };
+                
+                const info = complexityData[this.currentAlgorithm];
+                const infoPanel = document.getElementById('complexity-info');
+                
+                infoPanel.innerHTML = `
+                    <h4>${info.name}</h4>
+                    <div class="complexity-grid">
+                        <div><strong>Time:</strong> ${info.time}</div>
+                        <div><strong>Space:</strong> ${info.space}</div>
+                        <div><strong>Stable:</strong> ${info.stable}</div>
+                        <div><strong>In-place:</strong> ${info.inPlace}</div>
+                    </div>
+                `;
+            }
+
+            updateCodePanel() {
+                const codeSnippets = {
+                    bubble: `function bubbleSort(arr) {
+    for (let i = 0; i < arr.length - 1; i++) {
+        for (let j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // Swap elements
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+        }
+    }
+    return arr;
+}`,
+                    quick: `function quickSort(arr, low, high) {
+    if (low < high) {
+        const pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+function partition(arr, low, high) {
+    const pivot = arr[high];
+    let i = low - 1;
+    
+    for (let j = low; j < high; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+    }
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+    return i + 1;
+}`,
+                    merge: `function mergeSort(arr, left, right) {
+    if (left < right) {
+        const mid = Math.floor((left + right) / 2);
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+}
+
+function merge(arr, left, mid, right) {
+    const leftArr = arr.slice(left, mid + 1);
+    const rightArr = arr.slice(mid + 1, right + 1);
+    
+    let i = 0, j = 0, k = left;
+    
+    while (i < leftArr.length && j < rightArr.length) {
+        if (leftArr[i] <= rightArr[j]) {
+            arr[k++] = leftArr[i++];
+        } else {
+            arr[k++] = rightArr[j++];
+        }
+    }
+    
+    while (i < leftArr.length) arr[k++] = leftArr[i++];
+    while (j < rightArr.length) arr[k++] = rightArr[j++];
+}`,
+                    heap: `function heapSort(arr) {
+    buildMaxHeap(arr);
+    
+    for (let i = arr.length - 1; i > 0; i--) {
+        [arr[0], arr[i]] = [arr[i], arr[0]];
+        heapify(arr, i, 0);
+    }
+}
+
+function buildMaxHeap(arr) {
+    for (let i = Math.floor(arr.length / 2) - 1; i >= 0; i--) {
+        heapify(arr, arr.length, i);
+    }
+}
+
+function heapify(arr, n, i) {
+    let largest = i;
+    const left = 2 * i + 1;
+    const right = 2 * i + 2;
+    
+    if (left < n && arr[left] > arr[largest]) largest = left;
+    if (right < n && arr[right] > arr[largest]) largest = right;
+    
+    if (largest !== i) {
+        [arr[i], arr[largest]] = [arr[largest], arr[i]];
+        heapify(arr, n, largest);
+    }
+}`,
+                    insertion: `function insertionSort(arr) {
+    for (let i = 1; i < arr.length; i++) {
+        const key = arr[i];
+        let j = i - 1;
+        
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+    return arr;
+}`,
+                    linear: `function linearSearch(arr, target) {
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === target) {
+            return i; // Found at index i
+        }
+    }
+    return -1; // Not found
+}`,
+                    binary: `function binarySearch(arr, target) {
+    let left = 0;
+    let right = arr.length - 1;
+    
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        
+        if (arr[mid] === target) {
+            return mid; // Found at index mid
+        } else if (arr[mid] < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return -1; // Not found
+}`,
+                    bfs: `function breadthFirstSearch(graph, start, target) {
+    const queue = [start];
+    const visited = new Set();
+    const parent = new Map();
+    
+    while (queue.length > 0) {
+        const current = queue.shift();
+        
+        if (visited.has(current)) continue;
+        visited.add(current);
+        
+        if (current === target) {
+            return reconstructPath(parent, target);
+        }
+        
+        for (const neighbor of graph[current]) {
+            if (!visited.has(neighbor)) {
+                parent.set(neighbor, current);
+                queue.push(neighbor);
+            }
+        }
+    }
+    return null; // No path found
+}`,
+                    dfs: `function depthFirstSearch(graph, start, target) {
+    const stack = [start];
+    const visited = new Set();
+    const parent = new Map();
+    
+    while (stack.length > 0) {
+        const current = stack.pop();
+        
+        if (visited.has(current)) continue;
+        visited.add(current);
+        
+        if (current === target) {
+            return reconstructPath(parent, target);
+        }
+        
+        for (const neighbor of graph[current]) {
+            if (!visited.has(neighbor)) {
+                parent.set(neighbor, current);
+                stack.push(neighbor);
+            }
+        }
+    }
+    return null; // No path found
+}`,
+                    dijkstra: `function dijkstra(graph, start, target) {
+    const distances = new Map();
+    const previous = new Map();
+    const unvisited = new Set();
+    
+    // Initialize distances
+    for (const vertex of graph.vertices) {
+        distances.set(vertex, Infinity);
+        unvisited.add(vertex);
+    }
+    distances.set(start, 0);
+    
+    while (unvisited.size > 0) {
+        // Find unvisited vertex with minimum distance
+        let current = null;
+        let minDistance = Infinity;
+        
+        for (const vertex of unvisited) {
+            if (distances.get(vertex) < minDistance) {
+                minDistance = distances.get(vertex);
+                current = vertex;
+            }
+        }
+        
+        if (current === null) break;
+        unvisited.delete(current);
+        
+        if (current === target) {
+            return reconstructPath(previous, target);
+        }
+        
+        for (const neighbor of graph[current]) {
+            const alt = distances.get(current) + neighbor.weight;
+            if (alt < distances.get(neighbor.vertex)) {
+                distances.set(neighbor.vertex, alt);
+                previous.set(neighbor.vertex, current);
+            }
+        }
+    }
+    return null; // No path found
+}`
+                };
+                
+                document.getElementById('code-panel').textContent = codeSnippets[this.currentAlgorithm];
+            }
+        }
+
+        // Initialize the visualizer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new AlgorithmVisualizer();
+        });
+    </script>
+</body>
+</html>
